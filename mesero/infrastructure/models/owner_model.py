@@ -1,11 +1,11 @@
 from django.db import models
 
 class OwnerModel(models.Model):
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
-    password = models.TextField()  # Debe ser encriptada
+    password = models.CharField(max_length=255)
     plan_id = models.IntegerField()
+    phone = models.CharField(max_length=15, blank=True, null=True)
 
     class Meta:
         db_table = 'owners'
