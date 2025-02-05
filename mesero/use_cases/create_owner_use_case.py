@@ -1,11 +1,13 @@
 from mesero.repositories.owner_repository import OwnerRepository
 from mesero.core.entities.owner import Owner
+from django.contrib.auth.hashers import make_password
+
 
 class CreateOwnerUseCase:
     def __init__(self, owner_repository: OwnerRepository):
         self.owner_repository = owner_repository
 
-    def execute(self, name: str, email: str, password: str, plan_id: int) -> Owner:
-        # Aquí puedes encriptar la contraseña antes de guardarla
-        new_owner = Owner(id=None, name=name, email=email, password=password, plan_id=plan_id)
-        return self.owner_repository.create(new_owner)
+    def execute(self, name: str, email: str, password: str, phone: str, plan_id: int) -> Owner:
+        encrypted_password = make_password(password)  # Encriptar antes de guardar
+        owner = Owner(name, email, encrypted_password, phone, plan_id)
+        return self.owner_repository.create(owner)

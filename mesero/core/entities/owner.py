@@ -1,7 +1,8 @@
 class Owner:
-    def __init__(self, id: int, name: str, email: str, password: str, plan_id: int):
-        self.id = id
+    def __init__(self, name: str, email: str, password: str, phone: str, plan_id: int, id: int = None):
+        self.id = id  # Se asignará cuando se guarde en la DB
         self.name = name
         self.email = email
-        self.password = password  #encriptado
+        self.password = password  # Encriptado
+        self.phone = phone
         self.plan_id = plan_id

@@ -8,6 +8,7 @@ class OwnerRepositoryImpl(OwnerRepository):
             name=owner.name,
             email=owner.email,
             password=owner.password,
+            phone=owner.phone,
             plan_id=owner.plan_id
         )
         return Owner(
@@ -15,5 +16,6 @@ class OwnerRepositoryImpl(OwnerRepository):
             name=owner_model.name,
             email=owner_model.email,
             password=owner_model.password,
+            phone=owner_model.phone,
             plan_id=owner_model.plan_id
         )

@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'mesero.infrastructure',
+    'mesero',
+    'rest_framework',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -84,6 +86,7 @@ DATABASES = {
         'PORT': '5433',
     }
 }
+
 
 
 # Password validation

@@ -16,8 +16,24 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+
+# Crear una vista de esquema para Swagger
+schema_view = get_schema_view(
+    openapi.Info(
+        title="API de Mesero",
+        default_version='v1',
+        description="Documentación de la API de nuestro sistema",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="contact@mesero.local"),
+        license=openapi.License(name="MIT License"),
+    ),
+    public=True,
+)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('api/', include('mesero.presentation.urls')),  # Incluye las rutas de `presentation`
 ]
+
+
