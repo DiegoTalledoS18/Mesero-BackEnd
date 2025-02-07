@@ -23,9 +23,10 @@ class PlanRepositoryImpl(PlanRepository):
             plan_record.locations = plan.locations
             plan_record.tables = plan.tables
             plan_record.price = plan.price
+            plan_record.plan_type = plan.plan_type
             plan_record.save()
 
-            return Plan(plan_record.name, plan_record.description, plan_record.price, plan_record.locations, plan_record.tables, plan_record.id)
+            return Plan(plan_record.name, plan_record.description, plan_record.price, plan_record.locations, plan_record.tables, plan_record.plan_type, plan_record.id)
         except PlanModel.DoesNotExist:
             raise ValueError("El plan con el ID proporcionado no existe.")
 
@@ -36,6 +37,7 @@ class PlanRepositoryImpl(PlanRepository):
             price=plan.price,
             locations=plan.locations,
             tables=plan.tables,
+            plan_type=plan.plan_type,
         )
         return Plan(
             id=plan_model.id,
@@ -44,4 +46,5 @@ class PlanRepositoryImpl(PlanRepository):
             price=plan_model.price,
             locations=plan_model.locations,
             tables=plan_model.tables,
+            plan_type=plan_model.plan_type,
         )
