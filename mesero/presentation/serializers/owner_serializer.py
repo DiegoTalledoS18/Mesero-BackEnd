@@ -10,7 +10,7 @@ class OwnerSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(max_length=255, write_only=True)
     phone = serializers.CharField(max_length=20)
-    plan_id = serializers.IntegerField()
+    id = serializers.IntegerField(read_only=True)  # Solo lectura
 
     def create(self, validated_data):
         repository = OwnerRepositoryImpl()

@@ -13,3 +13,7 @@ class SubscriptionRepository(ABC):
     @abstractmethod
     def get_by_owner(self, owner_id):
         pass
+
+    @abstractmethod
+    def get_all(self):
+        pass
