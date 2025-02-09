@@ -16,21 +16,49 @@ class SubscriptionView(APIView):
 
     def post(self, request):
         try:
+            print("Request data:", request.data)  # Ver los datos completos que llegan
+
             email = request.data.get("email")
             token = request.data.get("token")
             plan_id = request.data.get("plan_id")
-            price = float(request.data.get("price"))
+            price = request.data.get("price")
 
-            print("PAGOS")
+            print("Valores extraídos:")
+            print(f"email: {email}")
+            print(f"token: {token}")
+            print(f"plan_id: {plan_id}")
+            print(f"price: {price}")
+            print(f"tipo de price: {type(price)}")
 
             if not email or not token or not plan_id or not price:
-                return Response({"error": "Todos los campos son obligatorios"}, status=status.HTTP_400_BAD_REQUEST)
+                missing_fields = []
+                if not email: missing_fields.append("email")
+                if not token: missing_fields.append("token")
+                if not plan_id: missing_fields.append("plan_id")
+                if not price: missing_fields.append("price")
+                return Response(
+                    {"error": f"Campos faltantes: {', '.join(missing_fields)}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            try:
+                price = float(price)
+            except ValueError:
+                return Response(
+                    {"error": f"El precio debe ser un número válido. Recibido: {price}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            print("Llamando a subscribe_user con:")
+            print(f"email: {email}, token: {token}, plan_id: {plan_id}, price: {price}")
 
             payment_response = self.subscription_service.subscribe_user(email, token, plan_id, price)
 
+            print("Respuesta del servicio:", payment_response)
             return Response(payment_response, status=status.HTTP_201_CREATED)
 
         except Exception as e:
+            print("Error específico:", str(e))  # Log del error específico
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class SubscriptionCreateView(CreateAPIView):
