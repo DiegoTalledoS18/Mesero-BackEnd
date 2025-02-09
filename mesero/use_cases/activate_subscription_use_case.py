@@ -2,12 +2,13 @@ from mesero.repositories.subscription_repository import SubscriptionRepository
 from mesero.core.entities.subscription import Subscription
 from datetime import datetime, timedelta
 from decimal import Decimal
+from datetime import datetime, timedelta
 
 class CreateSubscriptionUseCase:
     def __init__(self, subscription_repository: SubscriptionRepository):
         self.subscription_repository = subscription_repository
 
-    def execute(self, owner_id: int, plan_id: int, price_at_subscription: Decimal) -> Subscription:
+    def execute(self, owner_id: int, plan_id: int, price_at_subscription: Decimal, payer_email: str) -> Subscription:
 
         # Asignar fechas automáticamente
         start_date = datetime.now()

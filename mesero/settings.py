@@ -11,16 +11,18 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import environ
 from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Inicializa django-environ
 env = environ.Env()
-environ.Env.read_env()
+env.read_env(BASE_DIR / ".env")  # Asegúrate de indicar la ubicación del archivo
 
-# Obtiene la clave de Mercado Pago desde el .env
-MERCADOPAGO_ACCESS_TOKEN = env("MERCADOPAGO_ACCESS_TOKEN")
+
+# Obtiene la clave de Mercado Pago
+MERCADOPAGO_ACCESS_TOKEN = env("MERCADOPAGO_ACCESS_TOKEN", default="")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
