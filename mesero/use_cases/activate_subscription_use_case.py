@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from datetime import datetime, timedelta
 
-class CreateSubscriptionUseCase:
+class ActivateSubscriptionUseCase:
     def __init__(self, subscription_repository: SubscriptionRepository):
         self.subscription_repository = subscription_repository
 

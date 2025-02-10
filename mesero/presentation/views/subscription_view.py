@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.generics import ListAPIView
 from mesero.infrastructure.repositories.subscription_repository_impl import SubscriptionRepositoryImpl
 from mesero.presentation.serializers.subscription_serializer import SubscriptionModel, SubscriptionSerializer
-from mesero.use_cases.activate_subscription_use_case import CreateSubscriptionUseCase
+from mesero.use_cases.activate_subscription_use_case import ActivateSubscriptionUseCase
 from mesero.use_cases.get_subscriptions_use_case import GetSubscriptionsUseCase
 from mesero.infrastructure.services.subscription_service import SubscriptionService
 
@@ -68,7 +68,7 @@ class SubscriptionCreateView(CreateAPIView):
     def perform_create(self, serializer):
         # Instanciar repositorio y caso de uso
         plan_repository = SubscriptionRepositoryImpl()
-        create_subscription_use_case = CreateSubscriptionUseCase(plan_repository)
+        create_subscription_use_case = ActivateSubscriptionUseCase(plan_repository)
 
         # Obtener datos validados
         data = serializer.validated_data
