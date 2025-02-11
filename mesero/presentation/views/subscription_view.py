@@ -17,11 +17,12 @@ class SubscriptionCreateView(CreateAPIView):
         print("DATA RECIBIDA:", data)
         customer_email = serializer.validated_data["customer_email"]
         price_id = serializer.validated_data["price_id"]
+        payment_method_id = serializer.validated_data["payment_method_id"]
 
         use_case = CreateSubscriptionUseCase()
 
         try:
-            subscription = use_case.execute(customer_email, price_id)
+            subscription = use_case.execute(customer_email, price_id, payment_method_id)
             return JsonResponse({
                 "subscription_id": subscription.id,
                 "client_secret": subscription.latest_invoice.payment_intent.client_secret
