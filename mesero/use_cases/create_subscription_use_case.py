@@ -7,56 +7,73 @@ class CreateSubscriptionUseCase:
         try:
             stripe.api_key = settings.STRIPE_SECRET_KEY
 
-            print("Inicio del proceso de suscripción.")
+            # Buscar si el cliente ya existe
+            existing_customers = stripe.Customer.list(email=customer_email, limit=1)
 
-            # 1️⃣ Crear cliente en Stripe (si no existe)
-            print("Creando cliente en Stripe...")
-            customer = stripe.Customer.create(
-                email=customer_email,
-                description="Cliente para suscripción"
+            if existing_customers.data:
+                customer = existing_customers.data[0]
+            else:
+                customer = stripe.Customer.create(
+                    email=customer_email,
+                    description="Cliente para suscripción"
+                )
+
+            # Verificar si el cliente ya tiene una suscripción activa
+            existing_subscriptions = stripe.Subscription.list(
+                customer=customer.id,
+                status='active',
+                limit=1
             )
-            print(f"Cliente creado: {customer.id}")
 
-            # 2️⃣ Asociar el método de pago al cliente
-            print("Asociando método de pago al cliente...")
+            if existing_subscriptions.data:
+                raise Exception("Ya existe una suscripción activa para este cliente")
+
+            # Asociar método de pago
             stripe.PaymentMethod.attach(payment_method_id, customer=customer.id)
-            print(f"Método de pago {payment_method_id} asociado al cliente {customer.id}")
 
-            # 3️⃣ Configurar el método de pago como predeterminado
-            print("Configurando método de pago predeterminado...")
+            # Configurar método de pago predeterminado
             stripe.Customer.modify(
                 customer.id,
                 invoice_settings={"default_payment_method": payment_method_id}
             )
-            print("Método de pago predeterminado configurado.")
 
-            # 4️⃣ Crear la suscripción y cobrar la primera cuota
-            print("Creando suscripción...")
+            # Crear suscripción
             subscription = stripe.Subscription.create(
                 customer=customer.id,
                 items=[{"price": price_id}],
                 default_payment_method=payment_method_id,
                 expand=["latest_invoice.payment_intent"]
             )
-            print(f"Suscripción creada: {subscription.id}")
 
-            # 5️⃣ Verificar si hay un PaymentIntent asociado antes de confirmar el pago
-            if subscription.latest_invoice and subscription.latest_invoice.payment_intent:
-                payment_intent_id = subscription.latest_invoice.payment_intent.id
-                print(f"Confirmando PaymentIntent: {payment_intent_id}")
+            # Manejar el PaymentIntent
+            if hasattr(subscription, 'latest_invoice') and \
+                    hasattr(subscription.latest_invoice, 'payment_intent'):
+                payment_intent = subscription.latest_invoice.payment_intent
 
-                payment_intent = stripe.PaymentIntent.confirm(payment_intent_id)
-                print(f"Stripe PaymentIntent Response: {payment_intent}")
+                if payment_intent.status not in ['succeeded', 'requires_capture']:
+                    payment_intent = stripe.PaymentIntent.confirm(payment_intent.id)
 
-            else:
-                print("No se encontró un PaymentIntent en la suscripción.")
+                    if payment_intent.status not in ['succeeded', 'requires_capture']:
+                        raise stripe.error.StripeError(
+                            message="El pago no pudo ser procesado"
+                        )
 
             return subscription
 
         except stripe.error.StripeError as e:
-            print(f"Stripe Error: {e}")
-            raise Exception(f"Stripe Error: {e.user_message}")
+            # Cancelar la suscripción si existe y hubo error en el pago
+            if 'subscription' in locals():
+                try:
+                    stripe.Subscription.delete(subscription.id)
+                except:
+                    pass
+            raise Exception(f"Stripe Error: {e.user_message if hasattr(e, 'user_message') else str(e)}")
 
         except Exception as e:
-            print(f"Error inesperado: {e}")
+            # Cancelar la suscripción si existe y hubo error
+            if 'subscription' in locals():
+                try:
+                    stripe.Subscription.delete(subscription.id)
+                except:
+                    pass
             raise Exception(f"Error inesperado: {str(e)}")

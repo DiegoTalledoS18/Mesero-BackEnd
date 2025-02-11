@@ -7,14 +7,18 @@ from mesero.use_cases.activate_subscription_use_case import ActivateSubscription
 from mesero.use_cases.create_subscription_use_case import CreateSubscriptionUseCase
 from mesero.use_cases.get_subscriptions_use_case import GetSubscriptionsUseCase
 from django.http import JsonResponse
+from rest_framework.response import Response
+from rest_framework import status
 import stripe
 
-class SubscriptionCreateView(CreateAPIView):
-    serializer_class = StripeSubscriptionSerializer  # Agrega el serializador
 
-    def perform_create(self, serializer):
-        data = serializer.validated_data
-        print("DATA RECIBIDA:", data)
+class SubscriptionCreateView(CreateAPIView):
+    serializer_class = StripeSubscriptionSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         customer_email = serializer.validated_data["customer_email"]
         price_id = serializer.validated_data["price_id"]
         payment_method_id = serializer.validated_data["payment_method_id"]
@@ -23,12 +27,34 @@ class SubscriptionCreateView(CreateAPIView):
 
         try:
             subscription = use_case.execute(customer_email, price_id, payment_method_id)
-            return JsonResponse({
+            return Response({
+                "status": "success",
                 "subscription_id": subscription.id,
                 "client_secret": subscription.latest_invoice.payment_intent.client_secret
-            }, status=201)
+            }, status=status.HTTP_201_CREATED)
+
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
+            error_message = str(e)
+
+            if "Ya existe una suscripción activa" in error_message:
+                return Response({
+                    "status": "error",
+                    "message": "Ya existe una suscripción activa para este cliente"
+                }, status=status.HTTP_409_CONFLICT)
+
+            elif "Stripe Error" in error_message:
+                return Response({
+                    "status": "error",
+                    "message": "Error procesando el pago",
+                    "detail": error_message
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+                return Response({
+                    "status": "error",
+                    "message": "Error interno del servidor",
+                    "detail": error_message
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class SubscriptionActivateView(CreateAPIView):
     serializer_class = SubscriptionSerializer
