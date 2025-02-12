@@ -5,7 +5,10 @@ from django.conf import settings
 class CreateSubscriptionUseCase:
     def execute(self, customer_email: str, price_id: str, payment_method_id: str):
         try:
-            stripe.api_key = settings.STRIPE_SECRET_KEY
+            if not settings.STRIPE_SECRET_KEY:
+                raise Exception("Clave secreta de Stripe no configurada correctamente")
+            else:
+                stripe.api_key = settings.STRIPE_SECRET_KEY
 
             # Buscar si el cliente ya existe
             existing_customers = stripe.Customer.list(email=customer_email, limit=1)

@@ -6,11 +6,49 @@ from mesero.presentation.serializers.stripe_subscription_serializer import Strip
 from mesero.use_cases.activate_subscription_use_case import ActivateSubscriptionUseCase
 from mesero.use_cases.create_subscription_use_case import CreateSubscriptionUseCase
 from mesero.use_cases.get_subscriptions_use_case import GetSubscriptionsUseCase
-from django.http import JsonResponse
+from mesero.use_cases.cancel_subscription_use_case import CancelSubscriptionUseCase
+from mesero.use_cases.update_subscription_use_case import UpdateSubscriptionUseCase
 from rest_framework.response import Response
 from rest_framework import status
-import stripe
+from rest_framework.views import APIView
 
+class SubscriptionUpdateView(APIView):
+    def patch(self, request, pk):  # PATCH para modificaciones parciales
+        new_price_id = request.data.get("new_price_id")
+
+        if not new_price_id:
+            return Response(
+                {"status": "error", "message": "El nuevo price_id es requerido"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        use_case = UpdateSubscriptionUseCase()
+
+        try:
+            result = use_case.execute(pk, new_price_id)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"status": "error", "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SubscriptionCancelView(APIView):
+    def delete(self, request, *args, **kwargs):
+        # Obtener el ID del plan desde la URL
+        subscription_id = self.kwargs.get("pk")
+
+        if not subscription_id:
+            return Response(
+                {"status": "error", "message": "El ID de la suscripción es requerido"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        use_case = CancelSubscriptionUseCase()
+
+        try:
+            result = use_case.execute(subscription_id)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"status": "error", "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class SubscriptionCreateView(CreateAPIView):
     serializer_class = StripeSubscriptionSerializer
